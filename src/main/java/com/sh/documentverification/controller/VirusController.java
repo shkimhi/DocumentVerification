@@ -36,7 +36,7 @@ public class VirusController {
                 }
 
                 // Set your API key and scan the temporary file
-                VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("12d8a990abb28e7e7f3bf3b5e3db432f9593ed20bc5ee809387b54864872d693");
+                VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("");
                 VirustotalPublicV2 virusTotalRef = new VirustotalPublicV2Impl();
                 ScanInfo scanInfo = virusTotalRef.scanFile(tempFile);
 
@@ -69,7 +69,7 @@ public class VirusController {
 
     @PostMapping("/virus/api/report")
     public void getFileScanReport(@RequestParam("res") String res) throws APIKeyNotFoundException, QuotaExceededException, UnauthorizedAccessException, IOException {
-        VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("12d8a990abb28e7e7f3bf3b5e3db432f9593ed20bc5ee809387b54864872d693");
+        VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("");
         VirustotalPublicV2 virustotalPublicV2 = new VirustotalPublicV2Impl();
 
         FileScanReport report = virustotalPublicV2.getScanReport(res);
