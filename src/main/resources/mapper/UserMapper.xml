@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sh.documentverification.dao.UserMapper">
+    <!-- 회원가입 -->
+    <insert id="joinUser" parameterType="com.sh.documentverification.dto.User">
+        INSERT INTO USER
+            (UserId, UserPw, CreateAt)
+        VALUES
+            (#{UserId}, #{UserPw}, NOW())
+    </insert>
+
+    <select id="getUserId" resultType="com.sh.documentverification.dto.User">
+        SELECT *
+        FROM USER
+        WHERE UserId = #{UserId}
+    </select>
+
+</mapper>
