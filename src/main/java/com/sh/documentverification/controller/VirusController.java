@@ -1,98 +1,57 @@
 package com.sh.documentverification.controller;
 
-import com.kanishka.virustotal.dto.FileScanReport;
-import com.kanishka.virustotal.dto.ScanInfo;
-import com.kanishka.virustotal.dto.VirusScanInfo;
-import com.kanishka.virustotal.exception.APIKeyNotFoundException;
-import com.kanishka.virustotal.exception.QuotaExceededException;
-import com.kanishka.virustotal.exception.UnauthorizedAccessException;
-import com.kanishka.virustotalv2.VirusTotalConfig;
-import com.kanishka.virustotalv2.VirustotalPublicV2;
-import com.kanishka.virustotalv2.VirustotalPublicV2Impl;
+import com.sh.documentverification.services.SftpService;
+import com.sh.documentverification.services.VirusService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-
+@Tag(name = "Upload API", description = "파일 업로드, 바이러스 검사")
 @RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/virus/")
 public class VirusController {
 
+    private final SftpService sftpService;
+    private final VirusService virusService;
 
-    @PostMapping("/virus/api")
-    public void scanFile(@RequestParam("File") MultipartFile file) throws APIKeyNotFoundException {
+    @Operation(summary = "파일 업로드", description = "파일을 받아 바이러스 검사 후 sftp를 이용해 파일서버로 업로드 합니다.")
+    @Parameter(name = "file", description = "업로드할 파일")
+    @PostMapping("/upload")
+    public ResponseEntity<String> scanFile(@RequestParam("File") MultipartFile file){
         try {
-            // Check if the uploaded file is not empty
-            if (!file.isEmpty()) {
-                // Create a temporary file to save the uploaded content
-                File tempFile = File.createTempFile("uploaded_file", ".tmp");
-
-                // Copy the content of the MultipartFile to the temporary file
-                try (OutputStream os = new FileOutputStream(tempFile)) {
-                    os.write(file.getBytes());
-                }
-
-                // Set your API key and scan the temporary file
-                VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("");
-                VirustotalPublicV2 virusTotalRef = new VirustotalPublicV2Impl();
-                ScanInfo scanInfo = virusTotalRef.scanFile(tempFile);
-
-                // Handle the scan result as needed
-                System.out.println("___SCAN INFORMATION___");
-                System.out.println("MD5 :\t" + scanInfo.getMd5());
-                System.out.println("Perma Link :\t" + scanInfo.getPermalink());
-                System.out.println("Resource :\t" + scanInfo.getResource());
-                System.out.println("Scan Date :\t" + scanInfo.getScanDate());
-                System.out.println("Scan Id :\t" + scanInfo.getScanId());
-                System.out.println("SHA1 :\t" + scanInfo.getSha1());
-                System.out.println("SHA256 :\t" + scanInfo.getSha256());
-                System.out.println("Verbose Msg :\t" + scanInfo.getVerboseMessage());
-                System.out.println("Response Code :\t" + scanInfo.getResponseCode());
-                System.out.println("done.");
-
-                // Clean up the temporary file
-                tempFile.delete();
-            } else {
-                System.err.println("Uploaded file is empty.");
+            String scanResult = virusService.scanFile(file);
+            String Hash= null;
+            try {
+                Hash = virusService.getFileScanReport(scanResult);
+            } catch (RuntimeException ex) {
+                // RuntimeException이 발생하면 바이러스가 검출되었음을 클라이언트에게 알림
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+            } catch (Exception ex){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
             }
-        } catch (APIKeyNotFoundException ex) {
-            System.err.println("API key not found! " + ex.getMessage());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception ex) {
-            System.err.println("ex" + ex.getMessage());
-        }
-    }
 
-    @PostMapping("/virus/api/report")
-    public void getFileScanReport(@RequestParam("res") String res) throws APIKeyNotFoundException, QuotaExceededException, UnauthorizedAccessException, IOException {
-        VirusTotalConfig.getConfigInstance().setVirusTotalAPIKey("");
-        VirustotalPublicV2 virustotalPublicV2 = new VirustotalPublicV2Impl();
-
-        FileScanReport report = virustotalPublicV2.getScanReport(res);
-
-        System.out.println("MD5 :\t" + report.getMd5());
-        System.out.println("Perma link :\t" + report.getPermalink());
-        System.out.println("Resourve :\t" + report.getResource());
-        System.out.println("Scan Date :\t" + report.getScanDate());
-        System.out.println("Scan Id :\t" + report.getScanId());
-        System.out.println("SHA1 :\t" + report.getSha1());
-        System.out.println("SHA256 :\t" + report.getSha256());
-        System.out.println("Verbose Msg :\t" + report.getVerboseMessage());
-        System.out.println("Response Code :\t" + report.getResponseCode());
-        System.out.println("Positives :\t" + report.getPositives());
-        System.out.println("Total :\t" + report.getTotal());
-
-        Map<String, VirusScanInfo> scans = report.getScans();
-        for (String key : scans.keySet()){
-            VirusScanInfo virusScanInfo = scans.get(key);
-            System.out.println("Scanner : " + key);
-            System.out.println("\t\t Resut : " + virusScanInfo.getResult());
-            System.out.println("\t\t Update : " + virusScanInfo.getUpdate());
-            System.out.println("\t\t Version :" + virusScanInfo.getVersion());
+            if (scanResult != null && Hash != null) {
+                sftpService.sftpFileUpload(file.getInputStream(), file.getOriginalFilename(), Hash);
+                sftpService.disconnect();
+                String message = "파일이 성공적으로 업로드되었습니다!";
+                return ResponseEntity.ok(message);
+            } else {
+                String errorMessage = "바이러스 검사 또는 해시 검색 문제로 인해 파일 업로드에 실패했습니다..";
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMessage = "파일 업로드 실패" + e.getMessage();
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
 }

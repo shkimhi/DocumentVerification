@@ -3,16 +3,18 @@ package com.sh.documentverification.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
 import org.hyperledger.fabric.gateway.*;
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -46,11 +48,7 @@ public class LedgerService {
                     filehash.getRecord().getUsername());
             return new String(result, StandardCharsets.UTF_8);
 
-        } catch (ContractException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
+        } catch (ContractException | InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
@@ -58,10 +56,29 @@ public class LedgerService {
         builder.identity(wallet, authorizationService.getUserId()).networkConfig(networkConfigPath).discovery(true);
         try(Gateway gateway = builder.connect()) {
             byte[] resultByte = getContract(gateway).evaluateTransaction("queryFile", key);
+            System.out.println(Arrays.toString(resultByte));
             String resultString = new String (resultByte, StandardCharsets.UTF_8);
 
+            System.out.println(resultString+":resultString");
             List<Result> results = deserializeResultList(resultString);
+            System.out.println(results);
             return results;
+        }
+    }
+
+    public List<Result> queryAllHashFile() throws ContractException, IOException{
+        builder.identity(wallet, authorizationService.getUserId()).networkConfig(networkConfigPath).discovery(true);
+        try(Gateway gateway = builder.connect()) {
+
+            byte[] resultBytes = getContract(gateway).evaluateTransaction("queryAllHashFile");
+
+            String resultString = new String(resultBytes, StandardCharsets.UTF_8);
+
+
+            List<Result> results = deserializeResultList(resultString);
+
+            return results;
+
         }
     }
 

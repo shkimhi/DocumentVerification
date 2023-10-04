@@ -2,6 +2,8 @@ package com.sh.documentverification.services;
 
 import com.jcraft.jsch.*;
 import com.sh.documentverification.dao.SftpMapper;
+import com.sh.documentverification.dto.Result;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -14,12 +16,16 @@ import java.net.InetAddress;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class SftpService {
 
-    @Autowired
-    private SftpMapper sftpMapper;
+    private final SftpMapper sftpMapper;
+    private final LedgerService ledgerService;
 
     public Session session = null;
     public Channel channel = null;
@@ -107,12 +113,27 @@ public class SftpService {
                 }
             });
             String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
             JSONObject params = new JSONObject();
             params.put("uploadFileNm", uploadFileNm);
             params.put("authenticatedUser", userId);
             params.put("remoteFilePath", String.valueOf(remoteFilePath));
             params.put("hashValue", fileHash);
 
+            com.sh.documentverification.dto.File hashfile = new com.sh.documentverification.dto.File();
+            LocalDateTime now = LocalDateTime.now();
+            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분 ss초"));
+            hashfile.setFilename(uploadFileNm);
+            hashfile.setUsername(userId);
+            hashfile.setFilehash(fileHash);
+            hashfile.setFiledate(formatedNow);
+
+            Result resultfile = new Result();
+            resultfile.setRecord(hashfile);
+            resultfile.setKey(UUID.randomUUID().toString());
+            System.out.println(resultfile);
+
+            ledgerService.createFile(resultfile);
             sftpMapper.insertFile(params);
 
             //log.info("sftpFileUpload success.. ");

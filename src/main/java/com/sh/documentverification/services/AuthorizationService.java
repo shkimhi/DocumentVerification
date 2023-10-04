@@ -31,7 +31,7 @@ public class AuthorizationService {
 
     public final static String NETWORK_CONFIG_PATH = "../Documents/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.yaml";
     private final static String PEM_FILE_PATH = "../Documents/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem";
-    private final static String ORG1_CA_URL = "https://172.19.0.2:7054";
+    private final static String ORG1_CA_URL = "https://localhost:7054";
     private final static String ADMIN_USER = "admin";
 
     public final String getUserId() throws IOException{

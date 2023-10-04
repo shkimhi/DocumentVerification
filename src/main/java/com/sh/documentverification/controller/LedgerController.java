@@ -1,5 +1,6 @@
 package com.sh.documentverification.controller;
 
+import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
 import com.sh.documentverification.services.LedgerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +38,9 @@ public class LedgerController {
             String id = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             String key = UUID.randomUUID().toString();
             result.setKey(key);
+/*
             ledgerService.createFile(result);
+*/
 
             String message = "원장에 커밋이 성공 하였습니다.";
             return ResponseEntity.ok(message);
@@ -48,9 +51,8 @@ public class LedgerController {
     }
 
     @PostMapping("/query")
-    public ResponseEntity<?> queryFile() {
+    public ResponseEntity<?> queryFile(@RequestParam("key") String key) {
         try {
-            String key = "4375d204-abaf-4f7e-86ac-1e1943cc2381";
             List<Result> message = ledgerService.queryFile(key);
             return ResponseEntity.ok(message);
         } catch (ContractException | IOException e) {
@@ -58,4 +60,16 @@ public class LedgerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
+    @PostMapping("/allquery")
+    public ResponseEntity<?> queryAllHashFile() {
+        try {
+            List<Result> result =  ledgerService.queryAllHashFile();
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            String errorMessage = "불러오지 못했습니다." + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
+    }
+
 }
