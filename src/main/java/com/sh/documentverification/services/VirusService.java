@@ -23,7 +23,7 @@ public class VirusService {
 
     private final SftpService sftpService;
 
-    private final String virusTotalAPIKey = "12d8a990abb28e7e7f3bf3b5e3db432f9593ed20bc5ee809387b54864872d693";
+    private final String virusTotalAPIKey = "";
 
     public String scanFile(MultipartFile file) throws Exception{
         File tempFile = null;
