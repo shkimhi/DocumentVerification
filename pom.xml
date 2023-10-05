@@ -17,6 +17,14 @@
 	<properties>
 		<java.version>11</java.version>
 	</properties>
+	<repositories>
+		<repository>
+			<id>com.e-iceblue</id>
+			<name>e-iceblue</name>
+			<url>https://repo.e-iceblue.com/nexus/content/groups/public/</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -114,6 +122,11 @@
 			<groupId>com.github.vatbub</groupId>
 			<artifactId>VirustotalPublicV2.0</artifactId>
 			<version>1.1.rB</version>
+		</dependency>
+		<dependency>
+			<groupId>e-iceblue</groupId>
+			<artifactId>spire.doc</artifactId>
+			<version>11.9.5</version>
 		</dependency>
 
 	</dependencies>

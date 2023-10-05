@@ -1,51 +1,62 @@
 package com.sh.documentverification.controller;
 
-import com.sh.documentverification.dto.Result;
+import com.sh.documentverification.services.DocToPdfService;
 import com.sh.documentverification.services.LedgerService;
 import com.sh.documentverification.services.SftpService;
+import com.spire.doc.Document;
+import com.spire.doc.PictureWatermark;
+import com.spire.doc.PrivateFontPath;
+import com.spire.doc.ToPdfParameterList;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
+import java.io.*;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
+import static java.lang.Thread.sleep;
 
 
 @Tag(name = "Sftp API", description = "Sftp 파일 업로드 / 다운로드 API")
 @RestController
 @RequestMapping("/api/sftp")
+@RequiredArgsConstructor
 public class SftpController {
 
-    private SftpService sftpService;
-    private LedgerService ledgerService;
+    private final SftpService sftpService;
+    private final DocToPdfService docToPdfService;
 
 
-    @Autowired
-    public SftpController(SftpService sftpService, LedgerService ledgerService){
-        this.sftpService = sftpService;
-        this.ledgerService = ledgerService;
-    }
-
-    @Operation(summary = "파일 업로드", description = "파일을 입력받아 sftp를 이용해 파일서버로 업로드 합니다.")
+    @Operation(summary = "파일 업로드", description = "파일을 입력받아 sftp를 이용해 파일서버 및 블록체인 원장에 업로드 합니다.")
     @Parameter(name = "file", description = "업로드할 파일")
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException, NoSuchAlgorithmException, InterruptedException {
         try {
-            // 업로드 파일의 InputStream을 가져와서 SFTP 서버로 업로드
-            sftpService.sftpFileUpload(file.getInputStream(), file.getOriginalFilename(), sftpService.getHash(file.getInputStream()));
-            System.out.println(SftpService.getHash(file.getInputStream()));
+            //pdf로 변환
+            docToPdfService.DocToPdf(file);
+
+            // 파일의 SHA-256 해시 계산
+            String sha256Hash = calculateSHA256Hash(file.getInputStream());
+
+            //sftp 업로드 및 원장 등록
+            sftpService.sftpFileUpload(file.getInputStream(), file.getOriginalFilename(), sha256Hash);
             sftpService.disconnect();
+
             String message = "File uploaded successfully!";
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             e.printStackTrace();
             String errorMessage = "File upload failed " + e.getMessage();
-            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
 
@@ -58,10 +69,28 @@ public class SftpController {
             sftpService.sftpFileDownload(remoteFilePath, localFilePath);
             sftpService.disconnect();
             return "File Download Successfully";
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return "File Download failed: " + e.getMessage();
         }
     }
 
+    private static String calculateSHA256Hash(InputStream path) throws IOException, NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = path.read(buffer)) != -1) {
+            digest.update(buffer, 0, bytesRead);
+        }
+
+        byte[] hashBytes = digest.digest();
+
+        // 해시 값을 16진수 문자열로 변환
+        StringBuilder hashStringBuilder = new StringBuilder();
+        for (byte hashByte : hashBytes) {
+            hashStringBuilder.append(String.format("%02x", hashByte));
+        }
+
+        return hashStringBuilder.toString();
+    }
 }

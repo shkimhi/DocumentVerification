@@ -2,6 +2,7 @@ package com.sh.documentverification.controller;
 
 import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
+import com.sh.documentverification.services.AuthorizationService;
 import com.sh.documentverification.services.LedgerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,10 +27,12 @@ import java.util.UUID;
 public class LedgerController {
 
     private LedgerService ledgerService;
+    private AuthorizationService authorizationService;
 
     @Autowired
-    public LedgerController(LedgerService ledgerService) {
+    public LedgerController(LedgerService ledgerService, AuthorizationService authorizationService) {
         this.ledgerService = ledgerService;
+        this.authorizationService = authorizationService;
     }
 
     @Operation(summary = "블록 생성", description = "파일해쉬 및 파일명 저장")
@@ -72,4 +77,22 @@ public class LedgerController {
         }
     }
 
+    @PostMapping("/queryuser")
+    public ResponseEntity<?> queryUser(){
+        try {
+            String username = authorizationService.getUserId();
+            List<Result> result = ledgerService.queryUserid(username);
+            result.sort((o1, o2) -> {
+                if(o1.getRecord().getFiledate().length() > o2.getRecord().getFiledate().length()){
+                    return 1;
+                }else if(o1.getRecord().getFiledate().length() < o2.getRecord().getFiledate().length()){
+                    return -1;
+                }
+                return o1.getRecord().getFiledate().compareTo(o2.getRecord().getFiledate());
+            });
+            return ResponseEntity.ok(result);
+        } catch (ContractException | IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error",e.getMessage()));
+        }
+    }
 }

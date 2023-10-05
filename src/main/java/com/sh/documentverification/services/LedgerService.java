@@ -81,10 +81,20 @@ public class LedgerService {
 
         }
     }
+    public List<Result> queryUserid(String username) throws ContractException,IOException {
+        builder.identity(wallet, authorizationService.getUserId()).networkConfig(networkConfigPath).discovery(true);
+        try (Gateway gateway = builder.connect()) {
 
+            byte[] resultByte = getContract(gateway).evaluateTransaction("queryUser", username);
+            String resultString = new String(resultByte, StandardCharsets.UTF_8);
 
+            List<Result> results = deserializeResultList(resultString);
+            System.out.println(results);
+            return results;
 
-        private Contract getContract(Gateway gateway){
+        }
+    }
+    private Contract getContract(Gateway gateway){
         Network network = gateway.getNetwork("mychannel");
         return network.getContract("fabcar");
     }
@@ -93,7 +103,5 @@ public class LedgerService {
         TypeReference<List<Result>> typeRef = new TypeReference<List<Result>>() {};
         return mapper.readValue((result), typeRef);
     }
-
-
 
 }

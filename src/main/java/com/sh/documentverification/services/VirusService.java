@@ -23,17 +23,18 @@ public class VirusService {
 
     private final SftpService sftpService;
 
-    private final String virusTotalAPIKey = "";
+    private final String virusTotalAPIKey = "12d8a990abb28e7e7f3bf3b5e3db432f9593ed20bc5ee809387b54864872d693";
 
-    public String scanFile(MultipartFile file) throws Exception{
+    public String scanFile(File file) throws Exception{
         File tempFile = null;
         try {
-            if (file.isEmpty()) {
+            if (file == null || !file.exists() || !file.isFile()) {
                 System.err.println("업로드된 파일이 비어 있습니다.");
-                throw new IllegalArgumentException("Uploaded file is empty.");
+                throw new IllegalArgumentException("업로드된 파일이 비어 있습니다.");
             }
 
-            tempFile = createTempFile(file);
+            //tempFile = createTempFile(file);
+            tempFile = file;
             ScanInfo scanInfo = scanFileWithVirusTotal(tempFile);
 
             return scanInfo.getResource();
@@ -45,7 +46,9 @@ public class VirusService {
             handleGenericException(ex);
             throw ex;
         }finally {
+/*
             deleteTempFile(tempFile);
+*/
         }
     }
 
@@ -57,7 +60,7 @@ public class VirusService {
             if (report.getPositives() > 0) {
                 throw new RuntimeException("파일에서 바이러스가 발견되었습니다.");
             }if(report.getPositives() == null){
-                throw new Exception("알수없는 에러가 발생했습니다.");
+                throw new Exception("바이러스 API 에러.");
             }
             return report.getSha256();
 
@@ -70,13 +73,15 @@ public class VirusService {
         }
     }
 
-    private File createTempFile(MultipartFile file) throws IOException {
+/*
+    private File createTempFile(File file) throws IOException {
         File tempFile = File.createTempFile("uploaded_file", ".tmp");
         try (OutputStream os = new FileOutputStream(tempFile)) {
             os.write(file.getBytes());
         }
         return tempFile;
     }
+*/
     private void deleteTempFile(File tempFile) {
         if (tempFile != null && tempFile.exists()) {
             if (!tempFile.delete()) {

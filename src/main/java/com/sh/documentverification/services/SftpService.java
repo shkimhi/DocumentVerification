@@ -122,7 +122,7 @@ public class SftpService {
 
             com.sh.documentverification.dto.File hashfile = new com.sh.documentverification.dto.File();
             LocalDateTime now = LocalDateTime.now();
-            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분 ss초"));
+            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
             hashfile.setFilename(uploadFileNm);
             hashfile.setUsername(userId);
             hashfile.setFilehash(fileHash);
