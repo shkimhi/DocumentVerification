@@ -93,25 +93,63 @@
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
     </style>
 
 </head>
 <body class="text-center">
 <main class="form-signin w-100 m-auto">
-    <form action="/signup" method="post" class="needs-validation" novalidate>
-        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-        <h1 class="h3 mb-3 fw-normal">회원가입</h1>
-        <div class="form-floating mb-2" >
-            <input type="text" class="form-control" id="floatingInput" name="UserId" placeholder="ID" required>
-            <label for="floatingInput">ID</label>
-            <div class="invalid-feedback"> ID를 입력해주세요 </div>
-        </div>
-        <div class="form-floating">
-            <input type="password" class="form-control" id="floatingPassword" name="UserPw" placeholder="PW" required>
-            <label for="floatingPassword">PW</label>
-            <div class="invalid-feedback"> PW를 입력해주세요 </div>
-        </div>
-        <button class="w-100 btn btn-lg btn-primary mt-5 " type="submit">회원가입</button>
-    </form>
+    <!-- HTML 폼 대신 JavaScript로 데이터 전송 -->
+    <h1 class="h3 mb-3 fw-normal">회원가입</h1>
+    <div class="form-floating mb-2">
+        <input type="text" class="form-control" id="UserId" placeholder="ID" required>
+        <label for="UserId">ID</label>
+        <div class="invalid-feedback"> ID를 입력해주세요 </div>
+    </div>
+    <div class="form-floating">
+        <input type="password" class="form-control" id="UserPw" placeholder="PW" required>
+        <label for="UserPw">PW</label>
+        <div class="invalid-feedback"> PW를 입력해주세요 </div>
+    </div>
+    <!-- 에러 메시지를 여기에 추가 -->
+    <div class="error-message" id="errorMessage"></div>
+    <button class="w-100 btn btn-lg btn-primary mt-5" id="signupButton">회원가입</button>
 </main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // 회원가입 버튼 클릭 이벤트 처리
+        $("#signupButton").click(function () {
+            var userId = $("#UserId").val();
+            var userPw = $("#UserPw").val();
+
+            var jsonData = {
+                "UserId": userId,
+                "UserPw": userPw
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "api/user/signup",
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                success: function (response) {
+                        // 성공 메시지를 표시
+                        console.log("서버 응답: " + response.message);
+                },
+                error: function (response) {
+                    // 오류가 발생했을 때의 처리
+                    console.error("오류 발생: " + response.responseJSON.message);
+                    // 에러 메시지를 표시
+                    $("#errorMessage").text("오류 발생: " + response);
+                }
+            });
+        });
+    });
+</script>
 </body>

@@ -24,8 +24,8 @@ import java.util.List;
 
 @Tag(name = "Upload API", description = "파일 업로드, 바이러스 검사")
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/virus/")
+@RequiredArgsConstructor
 public class VirusController {
 
     private final SftpService sftpService;
@@ -95,3 +95,4 @@ public class VirusController {
         }
     }
 }
+

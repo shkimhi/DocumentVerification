@@ -2,20 +2,31 @@ package com.sh.documentverification.services;
 
 import com.sh.documentverification.dao.UserMapper;
 import com.sh.documentverification.dto.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserMapper userMappler;
+    private final UserMapper userMappler;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    public void signUp(User user){
+
+
+    public void joinUser(User user) {
         user.setUserPw(passwordEncoder.encode(user.getUserPw()));
+        validateDuplicateMember(user);
         userMappler.joinUser(user);
+
+    }
+    private void validateDuplicateMember(User user) {
+        if(userMappler.getUserId(user.getUserId()) != null) {
+            throw new DuplicateKeyException("이미 존재하는 회원입니다.");
+        }
+
     }
     public User getUserId(String UserId){
         return userMappler.getUserId(UserId);

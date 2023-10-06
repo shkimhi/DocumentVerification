@@ -34,4 +34,13 @@ public class ViewController {
         return "user/Join";
     }
 
+    @GetMapping("/pdf")
+    public String pdfVeiw(){
+        return "test";
+    }
+    @GetMapping("/pdftest")
+    public String pdftestVeiw(){
+        return "pdftest";
+    }
+
 }

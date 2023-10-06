@@ -51,11 +51,11 @@ public class SftpController {
             sftpService.sftpFileUpload(file.getInputStream(), file.getOriginalFilename(), sha256Hash);
             sftpService.disconnect();
 
-            String message = "File uploaded successfully!";
+            String message = "파일 업로드 성공";
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             e.printStackTrace();
-            String errorMessage = "File upload failed " + e.getMessage();
+            String errorMessage = "파일 업로드 실패 " + e.getMessage();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
@@ -68,10 +68,10 @@ public class SftpController {
         try {
             sftpService.sftpFileDownload(remoteFilePath, localFilePath);
             sftpService.disconnect();
-            return "File Download Successfully";
+            return "파일 다운로드 성공";
         } catch (Exception e) {
             e.printStackTrace();
-            return "File Download failed: " + e.getMessage();
+            return "파일 다운로드 실패 :" + e.getMessage();
         }
     }
 
@@ -82,15 +82,12 @@ public class SftpController {
         while ((bytesRead = path.read(buffer)) != -1) {
             digest.update(buffer, 0, bytesRead);
         }
-
         byte[] hashBytes = digest.digest();
-
         // 해시 값을 16진수 문자열로 변환
         StringBuilder hashStringBuilder = new StringBuilder();
         for (byte hashByte : hashBytes) {
             hashStringBuilder.append(String.format("%02x", hashByte));
         }
-
         return hashStringBuilder.toString();
     }
 }

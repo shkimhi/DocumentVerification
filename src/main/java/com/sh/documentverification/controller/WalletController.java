@@ -1,6 +1,7 @@
 package com.sh.documentverification.controller;
 
 import com.sh.documentverification.services.AuthorizationService;
+import lombok.RequiredArgsConstructor;
 import org.hyperledger.fabric.gateway.Wallet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/ca/")
+@RequiredArgsConstructor
 public class WalletController {
 
-    private AuthorizationService authorizationService;
-
-    @Autowired
-    public WalletController(AuthorizationService authorizationService){
-        this.authorizationService = authorizationService;
-    }
-
+    private final AuthorizationService authorizationService;
 
     @PostMapping("/enroll")
     public ResponseEntity<String> enrollAdmin() {
