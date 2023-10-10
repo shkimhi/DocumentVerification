@@ -18,7 +18,7 @@
 <body>
 <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">예약 서비스</a>
+        <a class="navbar-brand" href="/">문서 검증 서비스</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -26,14 +26,15 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             </ul>
-            <form class="d-flex me-2" action="/enrollAdmin" method="GET">
+            <form class="d-flex me-2" action="/api/ca/enroll" method="GET">
                 <button type="submit" class="btn btn-outline-success" id="submitButton">관리자 등록</button>
             </form>
-            <form class="d-flex me-2" action="/registerUser" method="GET" class="g-col-2">
+            <form class="d-flex me-2" action="/api/ca/register" method="GET" class="g-col-2">
                 <button type="submit" class="btn btn-outline-success" id="submitButton2">유저 가입</button>
             </form>
-            <form class="d-flex me-2" action="/mypage2" method="GET" class="g-col-2">
-                <button type="submit" class="btn btn-outline-success" id="ViddingButton">입찰페이지</button>
+
+            <form class="d-flex me-2" action="/" method="GET" class="g-col-2">
+                <button type="submit" class="btn btn-outline-success" id="ViddingButton">마이페이지</button>
             </form>
             <form class="d-flex me-2 " action="/logout" method="post">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>

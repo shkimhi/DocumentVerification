@@ -29,11 +29,9 @@ public class UserController {
             userService.joinUser(user);
             return ResponseEntity.status(HttpStatus.CREATED).body("회원가입에 성공하였습니다.");
         } catch (DuplicateKeyException e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("알수없는 에러");
         }
     }
 

@@ -54,7 +54,6 @@ public class SftpController {
             String message = "파일 업로드 성공";
             return ResponseEntity.ok(message);
         } catch (Exception e) {
-            e.printStackTrace();
             String errorMessage = "파일 업로드 실패 " + e.getMessage();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
@@ -70,7 +69,6 @@ public class SftpController {
             sftpService.disconnect();
             return "파일 다운로드 성공";
         } catch (Exception e) {
-            e.printStackTrace();
             return "파일 다운로드 실패 :" + e.getMessage();
         }
     }

@@ -41,7 +41,7 @@ public class SecurityConfig  {
         http
                 .logout()
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/");	// logout에 성공하면 /로 redirect
+                .logoutSuccessUrl("/login");	// logout에 성공하면 /로 redirect
         return http.build();
     }
 

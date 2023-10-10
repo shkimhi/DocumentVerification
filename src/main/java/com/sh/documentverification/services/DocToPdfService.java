@@ -7,6 +7,8 @@ import com.spire.doc.documents.ShapeLineStyle;
 import com.spire.doc.documents.ShapeType;
 import com.spire.doc.documents.WatermarkLayout;
 import com.spire.doc.fields.ShapeObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +20,6 @@ import java.util.List;
 
 @Service
 public class DocToPdfService {
-
 
     public void DocToPdf(MultipartFile file) throws IOException {
 
@@ -84,8 +85,6 @@ public class DocToPdfService {
         String pdfFileName = "/home/sh/Downloads/shatest/" + originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".pdf";
 
         doc.saveToFile(pdfFileName, ppl);
-
-
 
     }
 }

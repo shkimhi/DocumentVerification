@@ -5,14 +5,12 @@ import com.sh.documentverification.dao.SftpMapper;
 import com.sh.documentverification.dto.Result;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.sftp.session.SftpRemoteFileTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -24,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SftpService {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SftpMapper sftpMapper;
     private final LedgerService ledgerService;
 
@@ -33,11 +32,11 @@ public class SftpService {
     private static final Path remoteFilePath = Path.of("/home/web/Downloads");
 
     public void sftpInit() throws Exception {
-        String connIp = "172.16.5.14";		//접속 SFTP 서버 IP
-        int connPort = 22;	//접속 PORT
-        String connId = "web";		//접속 ID
-        String connPw = "123qwe";		//접속 PW
-        int timeout = 10000; 	//타임아웃 10초
+        String connIp = "172.16.5.14";        //접속 SFTP 서버 IP
+        int connPort = 22;    //접속 PORT
+        String connId = "web";        //접속 ID
+        String connPw = "123qwe";        //접속 PW
+        int timeout = 10000;    //타임아웃 10초
 
         JSch jsch = new JSch();
         try {
@@ -55,13 +54,14 @@ public class SftpService {
 
             //log.info("connect.. " + connIp);
             System.out.println("connect.. " + connIp);
-            session.connect();	//접속
+            session.connect();    //접속
 
-            channel = session.openChannel("sftp");	//sftp 채널 접속
+            channel = session.openChannel("sftp");    //sftp 채널 접속
             channel.connect();
 
         } catch (JSchException e) {
             //log.error(e);
+            logger.error(String.valueOf(e));
             System.out.println(e);
             throw e;
         }
@@ -72,34 +72,37 @@ public class SftpService {
      * SFTP 서버 접속 종료
      */
     public void disconnect() {
-        if(channelSftp != null) {
+        if (channelSftp != null) {
             channelSftp.quit();
         }
-        if(channel != null) {
+        if (channel != null) {
             channel.disconnect();
         }
-        if(session != null) {
+        if (session != null) {
             session.disconnect();
         }
     }
+
     public void sftpFileUpload(InputStream localPath, String uploadFileNm, String fileHash) throws Exception {
-        try{
+        try {
             sftpInit();
             //파일을 가져와서 inputStream에 넣고 저장경로를 찾아 업로드
             channelSftp.cd(String.valueOf(remoteFilePath));
             channelSftp.put(localPath, uploadFileNm, new SftpProgressMonitor() {
-                long FileSize =0;
+                long FileSize = 0;
                 long SendFileSize = 0;
-                int per =0;
+                int per = 0;
+
                 @Override
                 public void init(int i, String s, String s1, long l) {
                     this.FileSize = l;
                 }
+
                 @Override
                 public boolean count(long l) {
                     this.SendFileSize += l;
-                    long p =this.FileSize * 100 / this.FileSize;
-                    if(p>per){
+                    long p = this.FileSize * 100 / this.FileSize;
+                    if (p > per) {
 
                         //System.out.print("=");
 
@@ -108,6 +111,7 @@ public class SftpService {
                     }
                     return true;
                 }
+
                 @Override
                 public void end() {
                 }
@@ -138,25 +142,30 @@ public class SftpService {
 
             //log.info("sftpFileUpload success.. ");
             System.out.println("sftpFileUpload success.. ");
-        }catch(SftpException se){
+        } catch (SftpException se) {
             //log.error(se);
+            logger.error(String.valueOf(se));
             System.out.println(se);
             throw se;
         } catch (Exception e) {
-            //log.error(e);
+            //log.error(e)
+            logger.error(String.valueOf(e));
             System.out.println(e);
             throw e;
-        }finally{
-            try{
+        } finally {
+            try {
                 localPath.close();
-            } catch(IOException ioe){
+            } catch (IOException ioe) {
                 //log.error(ioe);
+                logger.error(String.valueOf(ioe));
                 System.out.println(ioe);
             }
         }
     }
+
     /**
      * SFTP 서버 파일 다운로드
+     *
      * @param downloadPath
      * @param localFilePath
      */
@@ -179,7 +188,7 @@ public class SftpService {
             bis = new BufferedInputStream(channelSftp.get(fileName));
 
             //파일 다운로드 SFTP 서버 -> 다운로드 서버
-            File newFile = new File(localFilePath+fileName);
+            File newFile = new File(localFilePath + fileName);
             os = new FileOutputStream(newFile);
             bos = new BufferedOutputStream(os);
 
@@ -193,6 +202,7 @@ public class SftpService {
             System.out.println("sftpFileDownload success.. ");
         } catch (Exception e) {
             //log.error(e);
+            logger.error(String.valueOf(e));
             System.out.println(e);
             throw e;
         } finally {
@@ -202,32 +212,30 @@ public class SftpService {
                 os.close();
             } catch (IOException e) {
                 //log.error(e);
+                logger.error(String.valueOf(e));
                 System.out.println(e);
             }
         }
     }
 
-    public static String getHash(InputStream path) throws IOException, NoSuchAlgorithmException{
+    public static String getHash(InputStream path) throws IOException, NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("MD5");
         FileInputStream fileInputStream = (FileInputStream) path;
 
-        byte [] dataBytes = new byte[1024];
+        byte[] dataBytes = new byte[1024];
 
         Integer nRead = 0;
-        while((nRead = fileInputStream.read(dataBytes)) != -1){
-            messageDigest.update(dataBytes,0, nRead);
+        while ((nRead = fileInputStream.read(dataBytes)) != -1) {
+            messageDigest.update(dataBytes, 0, nRead);
         }
 
         byte[] mdBytes = messageDigest.digest();
 
         StringBuffer stringBuffer = new StringBuffer();
-        for(Integer i =0; i<mdBytes.length; i++){
+        for (Integer i = 0; i < mdBytes.length; i++) {
             stringBuffer.append(Integer.toString((mdBytes[i] & 0xff) + 0x100, 16)).substring(1);
         }
         return stringBuffer.toString();
     }
-
-
-
-
+    
 }

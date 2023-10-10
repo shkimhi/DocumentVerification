@@ -89,7 +89,6 @@ public class VirusController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             String errorMessage = "파일 업로드 실패" + e.getMessage();
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }

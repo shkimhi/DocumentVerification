@@ -14,6 +14,8 @@ import org.hyperledger.fabric_ca.sdk.EnrollmentRequest;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.hyperledger.fabric_ca.sdk.RegistrationRequest;
 import org.hyperledger.fabric_ca.sdk.exception.EnrollmentException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ import java.util.Set;
 @Service
 public class AuthorizationService {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public final static String NETWORK_CONFIG_PATH = "../Documents/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/connection-org1.yaml";
     private final static String PEM_FILE_PATH = "../Documents/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem";
     private final static String ORG1_CA_URL = "https://localhost:7054";
@@ -46,11 +49,12 @@ public class AuthorizationService {
 
         boolean adminExists = wallet.get(ADMIN_USER) != null;
         if (adminExists) {
+            logger.error("관리자 아이디(\"" + ADMIN_USER + "\")가 이미 지갑에 존재 합니다.");
             return "관리자 아이디(\"" + ADMIN_USER + "\")가 이미 지갑에 존재 합니다.";
         }
         Enrollment enrollment = getAdminEnrollment(caClient);
         Identity user = Identities.newX509Identity("Org1MSP", enrollment); 
-        wallet.put(ADMIN_USER, user); 
+        wallet.put(ADMIN_USER, user);
         return "관리자 아이디(\"" + ADMIN_USER + "\")를 성공적으로 등록하고 지갑에 추가했습니다. ";
     }
 
@@ -62,11 +66,13 @@ public class AuthorizationService {
         boolean userExists = wallet.get(getUserId()) != null;
 
         if (userExists) {
+            logger.error("사용자 아이디(\"" + getUserId() + "\")가 이미 지갑에 존재 합니다.");
             return "사용자 아이디(\"" + getUserId() + "\")가 이미 지갑에 존재 합니다.";
         }
 
         boolean adminExists = wallet.get(ADMIN_USER) != null;
         if (!adminExists) {
+            logger.error("관리자(\"" + ADMIN_USER + "\") 를 먼저 등록하고 지갑에 추가해야 합니다.");
             return "관리자(\"" + ADMIN_USER + "\") 를 먼저 등록하고 지갑에 추가해야 합니다.";
         }
 

@@ -98,13 +98,17 @@
             font-size: 14px;
             margin-top: 5px;
         }
+        .success-message{
+            color: green;
+            font-size: 14px;
+            margin-top: 5px;
+        }
 
     </style>
 
 </head>
 <body class="text-center">
 <main class="form-signin w-100 m-auto">
-    <!-- HTML 폼 대신 JavaScript로 데이터 전송 -->
     <h1 class="h3 mb-3 fw-normal">회원가입</h1>
     <div class="form-floating mb-2">
         <input type="text" class="form-control" id="UserId" placeholder="ID" required>
@@ -118,6 +122,7 @@
     </div>
     <!-- 에러 메시지를 여기에 추가 -->
     <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
     <button class="w-100 btn btn-lg btn-primary mt-5" id="signupButton">회원가입</button>
 </main>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -125,6 +130,7 @@
     $(document).ready(function () {
         // 회원가입 버튼 클릭 이벤트 처리
         $("#signupButton").click(function () {
+            $("#errorMessage").empty();
             var userId = $("#UserId").val();
             var userPw = $("#UserPw").val();
 
@@ -139,14 +145,19 @@
                 data: JSON.stringify(jsonData),
                 contentType: "application/json",
                 success: function (response) {
-                        // 성공 메시지를 표시
-                        console.log("서버 응답: " + response.message);
+                    $("#successMessage").text(response);
+                    setTimeout(function () {
+                        window.location.href = "/login";
+                    }, 1000); // 1초(1000 밀리초) 후에 리디렉션
                 },
-                error: function (response) {
-                    // 오류가 발생했을 때의 처리
-                    console.error("오류 발생: " + response.responseJSON.message);
-                    // 에러 메시지를 표시
-                    $("#errorMessage").text("오류 발생: " + response);
+                error: function (xhr, textStatus, errorThrown) {
+                    if (xhr.status === 400) {
+                        // 잘못된 요청 (BAD_REQUEST)
+                        $("#errorMessage").text(xhr.responseText);
+                    } else {
+                        // 서버 내부 오류 (INTERNAL_SERVER_ERROR) 등
+                        $("#errorMessage").text(xhr.responseText);
+                    }
                 }
             });
         });

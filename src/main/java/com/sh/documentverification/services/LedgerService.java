@@ -7,6 +7,8 @@ import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
 import org.hyperledger.fabric.gateway.*;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ import static com.sh.documentverification.services.AuthorizationService.NETWORK_
 
 @Service
 public class LedgerService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private  Gateway.Builder builder;
     private  Wallet wallet;
@@ -49,6 +52,7 @@ public class LedgerService {
             return new String(result, StandardCharsets.UTF_8);
 
         } catch (ContractException | InterruptedException | TimeoutException e) {
+            logger.error(String.valueOf(e));
             throw new RuntimeException(e);
         }
     }

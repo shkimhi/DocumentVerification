@@ -9,6 +9,8 @@ import com.kanishka.virustotalv2.VirusTotalConfig;
 import com.kanishka.virustotalv2.VirustotalPublicV2;
 import com.kanishka.virustotalv2.VirustotalPublicV2Impl;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +23,7 @@ import java.io.OutputStream;
 @RequiredArgsConstructor
 public class VirusService {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final SftpService sftpService;
 
     private final String virusTotalAPIKey = "12d8a990abb28e7e7f3bf3b5e3db432f9593ed20bc5ee809387b54864872d693";
@@ -30,6 +33,7 @@ public class VirusService {
         try {
             if (file == null || !file.exists() || !file.isFile()) {
                 System.err.println("업로드된 파일이 비어 있습니다.");
+                logger.error("업로드된 파일이 비어 있습니다.");
                 throw new IllegalArgumentException("업로드된 파일이 비어 있습니다.");
             }
 
@@ -85,6 +89,7 @@ public class VirusService {
     private void deleteTempFile(File tempFile) {
         if (tempFile != null && tempFile.exists()) {
             if (!tempFile.delete()) {
+                logger.error("임시 파일 삭제 실패 : " + tempFile.getAbsolutePath());
                 System.err.println("임시 파일 삭제 실패 : " + tempFile.getAbsolutePath());
             }
         }
@@ -117,10 +122,12 @@ public class VirusService {
     }
 
     private void handleAPIKeyNotFoundException(APIKeyNotFoundException ex) {
+        logger.error("API 키를 찾을 수 없습니다! " + ex.getMessage());
         System.err.println("API 키를 찾을 수 없습니다! " + ex.getMessage());
     }
 
     private void handleGenericException(Exception ex) {
+        logger.error("예상치 못한 오류가 발생했습니다: " + ex.getMessage());
         System.err.println("예상치 못한 오류가 발생했습니다: " + ex.getMessage());
     }
 
