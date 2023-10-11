@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,8 @@ import static java.lang.Thread.sleep;
 @RequiredArgsConstructor
 public class SftpController {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final SftpService sftpService;
     private final DocToPdfService docToPdfService;
 
@@ -42,7 +46,7 @@ public class SftpController {
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException, NoSuchAlgorithmException, InterruptedException {
         try {
             //pdf로 변환
-            docToPdfService.DocToPdf(file);
+            //docToPdfService.DocToPdf(file);
 
             // 파일의 SHA-256 해시 계산
             String sha256Hash = calculateSHA256Hash(file.getInputStream());
@@ -55,6 +59,24 @@ public class SftpController {
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             String errorMessage = "파일 업로드 실패 " + e.getMessage();
+            logger.error(errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
+    }
+    // PDF 변환 API
+    @Operation(summary = "PDF 변환", description = "PDF로 변환합니다.")
+    @Parameter(name = "file", description = "변환할 파일")
+    @PostMapping("/convert")
+    public ResponseEntity<String> convertToPdf(@RequestParam("file") MultipartFile file) {
+        try {
+            // PDF 변환 로직
+            docToPdfService.DocToPdf(file);
+
+            String message = "PDF 변환 성공";
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            String errorMessage = "PDF 변환 실패: " + e.getMessage();
+            logger.error(errorMessage);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
@@ -69,11 +91,13 @@ public class SftpController {
             sftpService.disconnect();
             return "파일 다운로드 성공";
         } catch (Exception e) {
-            return "파일 다운로드 실패 :" + e.getMessage();
+            String errorMessage = "파일 다운로드 실패 :" + e.getMessage();
+            logger.error(errorMessage);
+            return errorMessage;
         }
     }
 
-    private static String calculateSHA256Hash(InputStream path) throws IOException, NoSuchAlgorithmException {
+    public String calculateSHA256Hash(InputStream path) throws IOException, NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] buffer = new byte[1024];
         int bytesRead;

@@ -124,20 +124,6 @@ public class SftpService {
             params.put("remoteFilePath", String.valueOf(remoteFilePath));
             params.put("hashValue", fileHash);
 
-            com.sh.documentverification.dto.File hashfile = new com.sh.documentverification.dto.File();
-            LocalDateTime now = LocalDateTime.now();
-            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
-            hashfile.setFilename(uploadFileNm);
-            hashfile.setUsername(userId);
-            hashfile.setFilehash(fileHash);
-            hashfile.setFiledate(formatedNow);
-
-            Result resultfile = new Result();
-            resultfile.setRecord(hashfile);
-            resultfile.setKey(UUID.randomUUID().toString());
-            System.out.println(resultfile);
-
-            ledgerService.createFile(resultfile);
             sftpMapper.insertFile(params);
 
             //log.info("sftpFileUpload success.. ");
@@ -237,5 +223,5 @@ public class SftpService {
         }
         return stringBuffer.toString();
     }
-    
+
 }

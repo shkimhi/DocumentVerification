@@ -15,8 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +33,37 @@ public class LedgerController {
 
     private final LedgerService ledgerService;
     private final AuthorizationService authorizationService;
+    private final SftpController sftpController;
+
+
+    @Operation(summary = "블록 생성", description = "파일해쉬 및 파일명 저장")
+    @Parameter(name = "result", description = "key, filename, filehash, filedate, username")
+    @PostMapping("/create")
+    public ResponseEntity<?> createFile(@RequestBody MultipartFile file) {
+        try {
+            String id = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            com.sh.documentverification.dto.File hashfile = new com.sh.documentverification.dto.File();
+            LocalDateTime now = LocalDateTime.now();
+            String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
+            hashfile.setFilename(file.getOriginalFilename());
+            hashfile.setUsername(id);
+            hashfile.setFilehash(sftpController.calculateSHA256Hash(file.getInputStream()));
+            hashfile.setFiledate(formatedNow);
+
+            Result resultfile = new Result();
+            resultfile.setKey(UUID.randomUUID().toString());
+            resultfile.setRecord(hashfile);
+
+            ledgerService.createFile(resultfile);
+
+
+            String message = "원장에 커밋이 성공 하였습니다.";
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            String errorMessage = "원장에 커밋이 실패 하였습니다. " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+        }
+    }
 
 
     @PostMapping("/query")

@@ -21,20 +21,22 @@ import java.util.List;
 @Service
 public class DocToPdfService {
 
-    public void DocToPdf(MultipartFile file) throws IOException {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    public void DocToPdf(MultipartFile file) throws Exception {
 
-        Document doc = new Document(file.getInputStream());
-        doc.setEmbedFontsInFile(true);
+        try {
+            Document doc = new Document(file.getInputStream());
+            doc.setEmbedFontsInFile(true);
 
-        //폰트 적용
-        PrivateFontPath fontPath = new PrivateFontPath("malgun", "malgun.ttf");
-        ToPdfParameterList ppl = new ToPdfParameterList();
-        List pathList = new LinkedList<>();
-        pathList.add(fontPath);
-        ppl.setPrivateFontPaths(pathList);
-        ppl.isEmbeddedAllFonts(true);
+            //폰트 적용
+            PrivateFontPath fontPath = new PrivateFontPath("malgun", "malgun.ttf");
+            ToPdfParameterList ppl = new ToPdfParameterList();
+            List pathList = new LinkedList<>();
+            pathList.add(fontPath);
+            ppl.setPrivateFontPaths(pathList);
+            ppl.isEmbeddedAllFonts(true);
 
-        // 이미지 워터마크
+            // 이미지 워터마크
 /*
         PictureWatermark pictureWatermark = new PictureWatermark();
         pictureWatermark.setPicture("tilon.png");
@@ -52,39 +54,42 @@ public class DocToPdfService {
         section.getDocument().setWatermark(textWatermark);
 */
 
-        ShapeObject shape = new ShapeObject(doc, ShapeType.Text_Plain_Text);
-        shape.setWidth(60);
-        shape.setHeight(20);
-        shape.setVerticalPosition(30);
-        shape.setHorizontalPosition(20);
-        shape.setRotation(315);
-        shape.getWordArt().setText("Tilon");
-        shape.setFillColor(new Color(255,53,20,50));
-        shape.setLineStyle(ShapeLineStyle.Single);
-        shape.setStrokeColor(new Color(255,53,20,50));
-        shape.setStrokeWeight(1);
+            ShapeObject shape = new ShapeObject(doc, ShapeType.Text_Plain_Text);
+            shape.setWidth(60);
+            shape.setHeight(20);
+            shape.setVerticalPosition(30);
+            shape.setHorizontalPosition(20);
+            shape.setRotation(315);
+            shape.getWordArt().setText("Tilon");
+            shape.setFillColor(new Color(255, 53, 20, 50));
+            shape.setLineStyle(ShapeLineStyle.Single);
+            shape.setStrokeColor(new Color(255, 53, 20, 50));
+            shape.setStrokeWeight(1);
 
-        Section section;
-        HeaderFooter header;
-        for (int n = 0; n < doc.getSections().getCount(); n++) {
-            section = doc.getSections().get(n);
-            header = section.getHeadersFooters().getHeader();
-            Paragraph paragraph1;
-            for (int i = 0; i < 4; i++) {
-                paragraph1 = header.addParagraph();
-                for (int j = 0; j < 3; j++) {
-                    shape = (ShapeObject) shape.deepClone();
-                    shape.setVerticalPosition(50 + 150 * i);
-                    shape.setHorizontalPosition(20 + 160 * j);
-                    paragraph1.getChildObjects().add(shape);
+            Section section;
+            HeaderFooter header;
+            for (int n = 0; n < doc.getSections().getCount(); n++) {
+                section = doc.getSections().get(n);
+                header = section.getHeadersFooters().getHeader();
+                Paragraph paragraph1;
+                for (int i = 0; i < 4; i++) {
+                    paragraph1 = header.addParagraph();
+                    for (int j = 0; j < 3; j++) {
+                        shape = (ShapeObject) shape.deepClone();
+                        shape.setVerticalPosition(50 + 150 * i);
+                        shape.setHorizontalPosition(20 + 160 * j);
+                        paragraph1.getChildObjects().add(shape);
+                    }
                 }
             }
+
+            String originalFileName = file.getOriginalFilename();
+            String pdfFileName = "/home/sh/Downloads/shatest/" + originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".pdf";
+
+            doc.saveToFile(pdfFileName, ppl);
+        }catch (Exception e){
+            logger.error(String.valueOf(e));
+            throw e;
         }
-
-        String originalFileName = file.getOriginalFilename();
-        String pdfFileName = "/home/sh/Downloads/shatest/" + originalFileName.substring(0, originalFileName.lastIndexOf('.')) + ".pdf";
-
-        doc.saveToFile(pdfFileName, ppl);
-
     }
 }
