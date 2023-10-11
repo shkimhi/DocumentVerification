@@ -1,6 +1,5 @@
 package com.sh.documentverification.controller;
 
-import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
 import com.sh.documentverification.services.AuthorizationService;
 import com.sh.documentverification.services.LedgerService;
@@ -9,19 +8,15 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.hyperledger.fabric.gateway.ContractException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +53,8 @@ public class LedgerController {
 
 
             String message = "원장에 커밋이 성공 하였습니다.";
-            return ResponseEntity.ok(message);
+            String message1 = file.getOriginalFilename()+" 파일이 성공적으로 업로드 되었습니다.";
+            return ResponseEntity.ok(message1);
         } catch (Exception e) {
             String errorMessage = "원장에 커밋이 실패 하였습니다. " + e.getMessage();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
@@ -69,8 +65,8 @@ public class LedgerController {
     @PostMapping("/query")
     public ResponseEntity<?> queryFile(@RequestParam("key") String key) {
         try {
-            List<Result> message = ledgerService.queryFile(key);
-            return ResponseEntity.ok(message);
+            List<Result> file = ledgerService.queryFile(key);
+            return ResponseEntity.ok(file);
         } catch (ContractException | IOException e) {
             String errorMessage = "불러오지 못했습니다." + e.getMessage();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);

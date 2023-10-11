@@ -43,4 +43,8 @@ public class ViewController {
         return "pdftest";
     }
 
+    @GetMapping("/mypage")
+    public String mypage(){
+        return "user/mypage";
+    }
 }

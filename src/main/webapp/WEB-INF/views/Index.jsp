@@ -15,7 +15,7 @@
       integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <head>
-    <title>Title</title>
+    <title>Home</title>
     <style>
         /* 드래그 앤 드롭 영역의 스타일 */
         #drop-area {
@@ -55,7 +55,7 @@
             <form class="d-flex me-2" action="/api/ca/register" method="POST" class="g-col-2">
                 <button type="submit" class="btn btn-outline-success" id="submitButton2">유저 가입</button>
             </form>
-            <form class="d-flex me-2" action="/" method="GET" class="g-col-2">
+            <form class="d-flex me-2" action="/mypage" method="GET" class="g-col-2">
                 <button type="submit" class="btn btn-outline-success" id="ViddingButton">마이페이지</button>
             </form>
             <form class="d-flex me-2 " action="/logout" method="post">
@@ -219,7 +219,8 @@
 
                 const createLedgerResponse = await createLedger(file);
                 console.log("원장에 기록 성공:", createLedgerResponse);
-                updateLoadingText("원장에 기록 완료");
+                updateCompletedtText1(createLedgerResponse);
+                //updateLoadingText("원장에 기록 완료");
                 updateProgressBar(100);
 
                 setTimeout(function (){
@@ -235,6 +236,10 @@
         function updateLoadingText(text) {
             $("#loading-text").text(text);
         }
+        function updateCompletedtText1(text) {
+            $("#completed-text").text(text);
+        }
+
         async function updateProgressBar(targetPercentage) {
             const progressBar = document.getElementById("progress-bar");
             let currentPercentage = progressBar.getAttribute("aria-valuenow");
