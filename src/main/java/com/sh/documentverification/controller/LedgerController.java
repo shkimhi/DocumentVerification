@@ -1,7 +1,9 @@
 package com.sh.documentverification.controller;
 
+import com.sh.documentverification.dto.Document;
 import com.sh.documentverification.dto.Result;
 import com.sh.documentverification.services.AuthorizationService;
+import com.sh.documentverification.services.HashService;
 import com.sh.documentverification.services.LedgerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,7 +30,7 @@ public class LedgerController {
 
     private final LedgerService ledgerService;
     private final AuthorizationService authorizationService;
-    private final SftpController sftpController;
+    private final HashService hashService;
 
 
     @Operation(summary = "블록 생성", description = "파일해쉬 및 파일명 저장")
@@ -37,12 +39,12 @@ public class LedgerController {
     public ResponseEntity<?> createFile(@RequestBody MultipartFile file) {
         try {
             String id = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            com.sh.documentverification.dto.File hashfile = new com.sh.documentverification.dto.File();
+            Document hashfile = new Document();
             LocalDateTime now = LocalDateTime.now();
             String formatedNow = now.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일 HH시 mm분"));
             hashfile.setFilename(file.getOriginalFilename());
             hashfile.setUsername(id);
-            hashfile.setFilehash(sftpController.calculateSHA256Hash(file.getInputStream()));
+            hashfile.setFilehash(hashService.calculateSHA256Hash(file.getInputStream()));
             hashfile.setFiledate(formatedNow);
 
             Result resultfile = new Result();
@@ -52,9 +54,8 @@ public class LedgerController {
             ledgerService.createFile(resultfile);
 
 
-            String message = "원장에 커밋이 성공 하였습니다.";
-            String message1 = file.getOriginalFilename()+" 파일이 성공적으로 업로드 되었습니다.";
-            return ResponseEntity.ok(message1);
+            String message = file.getOriginalFilename()+" 파일이 성공적으로 업로드 되었습니다.";
+            return ResponseEntity.ok(message);
         } catch (Exception e) {
             String errorMessage = "원장에 커밋이 실패 하였습니다. " + e.getMessage();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);

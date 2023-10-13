@@ -1,6 +1,7 @@
 package com.sh.documentverification.controller;
 
 import com.sh.documentverification.services.DocToPdfService;
+import com.sh.documentverification.services.HashService;
 import com.sh.documentverification.services.LedgerService;
 import com.sh.documentverification.services.SftpService;
 import com.spire.doc.Document;
@@ -38,6 +39,7 @@ public class SftpController {
 
     private final SftpService sftpService;
     private final DocToPdfService docToPdfService;
+    private final HashService hashService;
 
 
     @Operation(summary = "파일 업로드", description = "파일을 입력받아 sftp를 이용해 파일서버 및 블록체인 원장에 업로드 합니다.")
@@ -49,7 +51,9 @@ public class SftpController {
             //docToPdfService.DocToPdf(file);
 
             // 파일의 SHA-256 해시 계산
-            String sha256Hash = calculateSHA256Hash(file.getInputStream());
+            //String sha256Hash = calculateSHA256Hash(file.getInputStream());
+            String sha256Hash = hashService.calculateSHA256Hash(file.getInputStream());
+
 
             //sftp 업로드 및 원장 등록
             sftpService.sftpFileUpload(file.getInputStream(), file.getOriginalFilename(), sha256Hash);
@@ -97,19 +101,4 @@ public class SftpController {
         }
     }
 
-    public String calculateSHA256Hash(InputStream path) throws IOException, NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] buffer = new byte[1024];
-        int bytesRead;
-        while ((bytesRead = path.read(buffer)) != -1) {
-            digest.update(buffer, 0, bytesRead);
-        }
-        byte[] hashBytes = digest.digest();
-        // 해시 값을 16진수 문자열로 변환
-        StringBuilder hashStringBuilder = new StringBuilder();
-        for (byte hashByte : hashBytes) {
-            hashStringBuilder.append(String.format("%02x", hashByte));
-        }
-        return hashStringBuilder.toString();
-    }
 }

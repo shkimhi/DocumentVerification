@@ -51,15 +51,6 @@
                 </div>
             </div>
         </div>
-        <div class="col">
-            <div class="card text-bg-secondary mb-3" style="max-width: 18rem;">
-                <div class="card-header">Header</div>
-                <div class="card-body">
-                    <h5 class="card-title">Secondary card title</h5>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                </div>
-            </div>
-        </div>
 --%>
 
     </div>
@@ -93,8 +84,9 @@
                     $('.row.row-cols-1.row-cols-md-2.g-4').append(cardHtml);
                 });
             },
-            error: function() {
-                console.log('데이터를 가져오는 중 오류가 발생했습니다.');
+            error: function(xhr) {
+                $(".row.row-cols-1.row-cols-md-2.g-4").text(xhr.responseText);
+                console.log('데이터를 가져오는 중 오류가 발생했습니다.'+ xhr.responseText);
             }
         });
         });

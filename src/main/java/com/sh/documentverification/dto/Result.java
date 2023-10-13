@@ -8,10 +8,10 @@ import lombok.Setter;
 public class Result {
 
     private String key;
-    private File record;
+    private Document record;
 
     public Result(){
-        this.record =new File();
+        this.record =new Document();
     }
 
 }

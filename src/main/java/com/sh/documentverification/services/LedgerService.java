@@ -3,10 +3,8 @@ package com.sh.documentverification.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sh.documentverification.dto.File;
 import com.sh.documentverification.dto.Result;
 import org.hyperledger.fabric.gateway.*;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
